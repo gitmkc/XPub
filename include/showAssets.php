@@ -40,6 +40,7 @@ if (isset($_REQUEST['sourcedir'])) {
         $subdir->close();
     }
     ?>
+    <div id="replceProgress"></div>
     <div class="twoColSec">
         <div class="col1">
             <h6 class="blk17">All Assets</h6>
@@ -76,7 +77,7 @@ if (isset($_REQUEST['sourcedir'])) {
     <div class="clear"></div>
     <div id="publishMyHTML">
         <div class="tableBox">
-            <h6 class="blk17">Published History <a style="margin-bottom: 3px; float:right" href="#" onClick="showAssetfiles('<?php echo $sourceDir?>','loadContents','<?php echo $UserName ?>')"><img align="top" src="../css/images/refresh.png"/></a></h6>
+            <h6 class="blk17">Published History <a class="refreshlist" href="#" onClick="showAssetfiles('<?php echo $sourceDir?>','loadContents','<?php echo $UserName ?>')">List</a><a class="modalInput1 findReplace" rel="#yesno1" href="#" onClick="openReplaceDialog();">Find/Replace</a></h6>
             <table class="proj_table" width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr class="tab_head">
                     <th align="left" valign="middle">#</th>
@@ -133,4 +134,21 @@ if (isset($_REQUEST['sourcedir'])) {
     echo "No Item to show.";
 }
 ?>
+<div class="modalA" id="yesno1">
+  <div class="titleRow">Global Text Replace (HTML files only)</div>
+    <div class="loginCont">
+    <ul>
+        <li> <span>Query</span>
+            <input type="text" id="searchstring" name="searchstring"/>
+        </li>
+        <li> <span>Replace</span>
+            <input type="text" id="replacestring" name="replacestring"/>
+        </li>
+    </ul>
+    </div>    
+  <p>
+    <input type="button" name="qproceed" value="Proceed" class="centerBtn close bluBtn" onClick="findreplace('<?php echo "../published/jobs/$sourceDir"?>')"/>
+    <input type="button" value="Cancel" class="centerBtn close bluBtn" />
+  </p>
+</div>
 
