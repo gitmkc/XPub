@@ -395,3 +395,81 @@ function reLoadEditor (filePath,editfileName) {
         }
    });
 }
+
+//
+function cssEdit (assetid) {
+    if (document.getElementById(assetid).value == '---SELECT---') {
+      alert('Please select valid repository.');
+    }   
+    $(document).ready(function() {
+      // get user input
+      //$("select#asset").change(function() {
+          var input = $("select#asset option:selected").val();
+          if (input != '' && input != '---SELECT---') {
+            var triggers = $(".modalInput").overlay({
+
+              // some mask tweaks suitable for modal dialogs
+              mask: {
+                color: '#ebecff',
+                loadSpeed: 200,
+                opacity: 0.9
+              },
+
+              closeOnClick: false
+            });
+            $.ajax({
+                type: "POST",
+                url: "editcss.php?dir=../published/jobs/"+input,
+                success: function(html){ 
+                  if(html!="") {                
+                    $("textarea#csseditor").fadeIn(500);
+                    $("span#cssJobName").html(input);
+                    $("textarea#csseditor").text(html);
+                  }
+                }
+             });
+          } else {
+            alert('Please select valid repository.');
+          }
+      //});
+    });
+}
+
+
+// open replace text dialog
+function openReplaceDialog() {
+        var triggers = $(".modalInput1").overlay({
+
+          // some mask tweaks suitable for modal dialogs
+          mask: {
+            color: '#ebecff',
+            loadSpeed: 200,
+            opacity: 0.9
+          },
+
+          closeOnClick: false
+        });
+}
+//
+function findreplace(sourceDir) {
+    $(document).ready(function() {
+      // get user input
+        var searchstring = document.getElementById('searchstring').value;
+        var replacestring = document.getElementById('replacestring').value;
+        var response = confirm('Are you sure that you want to replace string in all files.');
+        if (response == true) {
+        //$("#replceProgress").html('<img src="../css/images/ajax-loader.gif"/> replacing query...');
+            $.ajax({
+                type: "POST",
+                url: "fileReplace.php",
+                data: {filePath: sourceDir, searchstring: searchstring, replacestring: replacestring},
+                success: function(result){ 
+                  if(result!="") {                
+                      alert("The query has been replaced in "+result+" files.");
+                      //$("#replceProgress").html(result+' ');
+                  }
+                }
+             });
+        }
+    });    
+}
