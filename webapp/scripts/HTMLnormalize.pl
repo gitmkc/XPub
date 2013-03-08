@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
-
 use strict;
+use HTML::Entities;
 
 # Set Lib Path
 BEGIN {
@@ -9,18 +9,20 @@ BEGIN {
 
 use mainFunction;
 
+## binmode to see utf on stdout
+#binmode(STDOUT, ':utf8');
+
 ## Create Object reference
 our $pkg = eval { new mainFunction(); } or die ("Error: ".$@);
-
-#$pkg->DisplayMessage("This is Package Function");
 
 ##
 $pkg->LoadEntityDatabase("/var/www/SunXpublish/webapp/scripts","unicode.xml");
 
-# print $pkg->{entityHash}{'decimalToUnicode'}{'47'}."\n";
-# print $pkg->{entityHash}{'unicodeToDecimal'}{'0002B'}."\n";
-# print $pkg->{entityHash}{'unicodeToISO'}{"0002B"}."\n";
-# print $pkg->{entityHash}{'IsoToUnicode'}{"plus"}."\n";
+### example to pick up entity
+## print $pkg->{entityHash}{'decimalToUnicode'}{'47'}."\n";
+## print $pkg->{entityHash}{'unicodeToDecimal'}{'0002B'}."\n";
+## print $pkg->{entityHash}{'unicodeToISO'}{"0002B"}."\n";
+## print $pkg->{entityHash}{'IsoToUnicode'}{"plus"}."\n";
 
 #exit(0);
 
@@ -28,23 +30,28 @@ $pkg->LoadEntityDatabase("/var/www/SunXpublish/webapp/scripts","unicode.xml");
 # HTML Normalization
 my ($filePath,$inputfile,$outputfile);
 my ($targetFilePath);
-my ($dos2unix,$entityType,$xmllang);
+my ($dos2unix,$entityType,$xmllang,$inserted_metatag,$entLength);
 
 ##
-$entityType="utf8";
-$xmllang="en";
+$entLength = 0;
+$entityType = "utf8";
+$xmllang = "en";
 
-$filePath=$ARGV[0];
-$inputfile=$ARGV[1];
+$filePath = $ARGV[0];
+$inputfile = $ARGV[1];
 
 $inputfile=~s/\.html$//s;
 $inputfile=~s/\-stg2$//s;
+
+system("cp -p $filePath/$inputfile-stg2.html $filePath/$inputfile-stg3.html");
+
 #print "File Path: $filePath && INPUT File: $inputfile\n";
 
 ## 
 open (XMLINFO,"$filePath/xmlinfo.txt") || die ("Couldn't open file");
 while (my $line=<XMLINFO>) {
-    if ($line=~/^unicode$/) {
+    if ($line=~/^unicode: ([0-9]+)$/) {
+	$entLength = $1;
 	$entityType="unicode";
     }
     
@@ -55,8 +62,13 @@ while (my $line=<XMLINFO>) {
     if ($line=~/^xmllang\: ([A-Za-z\-]+)$/) {
 	$xmllang="$1";
     }
+
+    if ($line=~/^metatag$/) {
+	$inserted_metatag="metatag";
+    }
 }
 close(XMLINFO);
+
 
 ## Perform DOS2UNIX
 $dos2unix="/usr/bin/dos2unix -ascii \"$filePath/${inputfile}-stg2.html\" \"$filePath/${inputfile}-stg2.html\" && /usr/bin/tr \"\r\" \"\n\" < \"$filePath/${inputfile}-stg2.html\" > \"$filePath/${inputfile}tmp-stg2.html\" && mv \"$filePath/${inputfile}tmp-stg2.html\" \"$filePath/${inputfile}-stg2.html\"";
@@ -68,10 +80,29 @@ open (INFILE,"$filePath/${inputfile}-stg2.html") || die ("couldn't open file");
 $_=<INFILE>;
 close(INFILE);
 
-#UTF to Unicode;
-if ($entityType eq "unicode") {
-    &TransformCharacters;
+##
+while (/\&\#([0-9]+)\;/s) {
+    my $html_ent = "$1";
+    #$charcount++;
+    #print "Converting...$charcount\n";
+	if ($entityType eq "unicode" || $entityType eq "iso") {
+		s/\&\#$html_ent\;/\&\#x$pkg->{entityHash}{'decimalToUnicode'}{"$html_ent"}\;/s;
+		if ($entLength == 4 && $entityType eq "unicode") {
+			s/\&\#x0([A-Za-z0-9]+)\;/\&\#X_$1\;/s;
+		}
+	} else {
+		#$pkg->{entityHash}{'decimalToUnicode'}{'47'}
+		$html_ent = "&#$html_ent;";
+		my $utfchar = decode_entities($html_ent);
+		s/$html_ent/$utfchar/s;
+	}
 }
+s/\&\#X\_/\&\#x/g;
+
+#UTF to Unicode;
+#if ($entityType eq "unicode") {
+#    &TransformCharacters;
+#}
 
 ## Replace Unicode to ISO
 ## $entityType='iso'; # for entity conversion testing 
@@ -105,6 +136,7 @@ exit(0);
 
 ##
 sub TransformCharacters {
+    DebugMessage("TransformCharacters...");
     ## this function will convert utf 8 character set to unicode character set
     s/([\xC0-\xDF][\x80-\xFF])/'&#'.(&UTF8Decode($1)).';'/ge;
     s/([\xE0-\xEF][\x80-\xFF]{2})/'&#'.(&UTF8Decode($1)).';'/ge;
@@ -129,6 +161,7 @@ sub TransformCharacters {
 ## UTF8
 sub UTF8Decode {
     # UTF 8 Decoder
+    DebugMessage("UTF 8 Decoder...$_[0]");
     my ( $chars ) = $_[0];
     my $factor = 1;
     my $charval;
@@ -194,41 +227,57 @@ sub normalizeText() {
 
     ## Get Title
     if (/<title>(.*?)<\/title>/s) {
-	s/[\n ]*<title>(.*?)<\/title>//s;
-	$DocTitle="<title>$1<\/title>";
+    	s/[\n ]*<title>(.*?)<\/title>//s;
+    	$DocTitle="<title>$1<\/title>";
     }
 
     ## Get Link1
     if (/<link href="([A-Za-z]+).css" rel="stylesheet" type="text\/css" \/>/) {
-	s/[\n ]*<link href="([A-Za-z]+).css" rel="stylesheet" type="text\/css" \/>//s;
-	$stylesheet=qq(<link href="$1.css" rel="stylesheet" type="text\/css"\/>);
+    	s/[\n ]*<link href="([A-Za-z]+).css" rel="stylesheet" type="text\/css" \/>//s;
+    	$stylesheet=qq(<link href="$1.css" rel="stylesheet" type="text\/css"\/>);
     }
 
     ## Get Link1
     if (/<link rel="stylesheet" href="css\/([A-Za-z]+).css" type="text\/css" \/>/) {
-	my $cssFileName=$1;
-	s/[\n ]*<link rel="stylesheet" href="css\/([A-Za-z]+).css" type="text\/css" \/>//s;
-	$stylesheet=qq(<link rel="stylesheet" href="css\/$cssFileName.css" type="text\/css"\/>);
+    	my $cssFileName=$1;
+    	s/[\n ]*<link rel="stylesheet" href="css\/([A-Za-z]+).css" type="text\/css" \/>//s;
+    	$stylesheet=qq(<link rel="stylesheet" href="css\/$cssFileName.css" type="text\/css"\/>);
     }
 
     ## Get Link1
     if (/<link rel="stylesheet" type="text\/css" href="([A-Za-z]+).css" \/>/) {
-	my $cssFileName=$1;
-	s/[\n ]*<link rel="stylesheet" type="text\/css" href="([A-Za-z]+).css" \/>//s;
-	$stylesheet=qq(<link rel="stylesheet" href="$cssFileName.css" type="text\/css"\/>);
+    	my $cssFileName=$1;
+    	s/[\n ]*<link rel="stylesheet" type="text\/css" href="([A-Za-z]+).css" \/>//s;
+    	$stylesheet=qq(<link rel="stylesheet" href="$cssFileName.css" type="text\/css"\/>);
     }
 
+    ## Get Link1
+    if (/<link rel="stylesheet" type="text\/css" href="css\/([A-Za-z]+).css" \/>/) {
+    	my $cssFileName=$1;
+    	s/[\n ]*<link rel="stylesheet" type="text\/css" href="css\/([A-Za-z]+).css" \/>//s;
+    	$stylesheet=qq(<link rel="stylesheet" type="text\/css" href="css\/$cssFileName.css"\/>);
+    }
 
     ## Get Link1
     if (/<link rel="stylesheet" type="application\/vnd.adobe-page-template\+xml" href="page-template.xpgt" \/>/) {
-	s/[\n ]*<link rel="stylesheet" type="application\/vnd.adobe-page-template\+xml" href="page-template.xpgt" \/>//s;
-	$stylesheet="$stylesheet\n"."<link rel=\"stylesheet\" type=\"application\/vnd.adobe-page-template\+xml\" href=\"page-template.xpgt\"\/>";
+    	s/[\n ]*<link rel="stylesheet" type="application\/vnd.adobe-page-template\+xml" href="page-template.xpgt" \/>//s;
+    	$stylesheet="$stylesheet\n"."<link rel=\"stylesheet\" type=\"application\/vnd.adobe-page-template\+xml\" href=\"page-template.xpgt\"\/>";
     }
 
-    if (/<meta http-equiv="content-type" content="text\/html\;charset=([A-Za-z0-9\-]+)" \/>/) {
-	$metatag=$1;
-	s/[\n ]*<meta http-equiv="content-type" content="text\/html\;charset=([A-Za-z0-9\-]+)" \/>//s;
-	$metatag="<meta http-equiv=\"content-type\" content=\"text\/html\;charset=$metatag\" \/>";
+    ## meta
+    if (/<meta http-equiv="content-type" content="text\/html\;charset=([A-Za-z0-9\-]+)"([\s]*)\/>/) {
+    	$metatag=$1;
+    	s/[\n ]*<meta http-equiv="content-type" content="text\/html\;charset=([A-Za-z0-9\-]+)"([\s]*)\/>//s;
+    	$metatag="<meta http-equiv=\"content-type\" content=\"text\/html\;charset=$metatag\" \/>";
+    } elsif (/<meta http-equiv="Content-Type" content="text\/html\;charset=([A-Za-z0-9\-]+)"([\s]*)\/>/) {
+    	$metatag=$1;
+    	s/[\n ]*<meta http-equiv="Content-Type" content="text\/html\;charset=([A-Za-z0-9\-]+)"([\s]*)\/>//s;
+    	$metatag="<meta http-equiv=\"Content-Type\" content=\"text\/html\;charset=$metatag\" \/>";
+    }
+
+    ## Remove meta tag
+    if ($inserted_metatag) {
+	$metatag="";
     }
 
     ## Remove blank tags
@@ -296,12 +345,6 @@ EOF
 
     ## Headings Div
     s/<\/div>[\n]*/<\/div>\n/g;
-    # s/<div><h1>(.+?)<\/h1><\/div>[\n]+/<p class="head1">$1<\/p>\n/g;
-    # s/<div><h2>(.+?)<\/h2><\/div>[\n]+/<p class="head2">$1<\/p>\n/g;
-    # s/<div><h3>(.+?)<\/h3><\/div>[\n]+/<p class="head3">$1<\/p>\n/g;
-    # s/<div><h4>(.+?)<\/h4><\/div>[\n]+/<p class="head4">$1<\/p>\n/g;
-    # s/<div><h5>(.+?)<\/h5><\/div>[\n]+/<p class="head5">$1<\/p>\n/g;
-    # s/<div><h6>(.+?)<\/h6><\/div>[\n]+/<p class="head6">$1<\/p>\n/g;
 
     s/<div>(.+?)<\/div>[\n]+/<p class="noindent">$1<\/p>\n/g;
 

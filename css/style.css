@@ -389,6 +389,10 @@ h6.blk17 {
     margin:10px 0px 0px 0px!important;
 }
 
+.centerBtn {
+    margin: 0px;
+}
+
 .bluBtn_edit {
     margin:10px 0px 0px 0px;
     border:solid 1px #135184;
@@ -710,6 +714,26 @@ a.cssedit {
     background:url(../css/images/edit_css1.png) no-repeat left;
 }
 
+a.findReplace {
+    width:100px;
+    padding-left: 30px;
+    float:right;
+    height:22px;
+    margin-top: 3px;
+    font-size:14px;
+    background:url(../css/images/findreplace.png) no-repeat left;
+}
+
+a.refreshlist {
+    width:95px;
+    padding-left: 30px;
+    float:right; 
+    height:24px;
+    margin-top: 3px;
+    font-size:14px;
+    background:url(../css/images/refreshlist.png) no-repeat left;
+}
+
 ul.top-right{ padding:0px; margin:0px; list-style:none; width:150px; float:right;}
 
 ul.top-right li{ padding:0px; margin:0px; list-style:none;}
@@ -754,6 +778,21 @@ ul.top-right li.faq a{ background:url(../css/images/help.png) no-repeat left; pa
     -webkit-box-shadow: 0 0 50px #ccc;
   }
 
+    .modalA {
+    background-color:#fff;
+    display:none;
+    width:50%;
+    padding:15px;
+    text-align:left;
+    border:2px solid #333;
+
+    opacity:0.8;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    -moz-box-shadow: 0 0 50px #ccc;
+    -webkit-box-shadow: 0 0 50px #ccc;
+  }
+
   .modal h2 {
     /* background:url(/media/img/global/info.png) 0 50% no-repeat; */
     margin:0px;
@@ -761,3 +800,4 @@ ul.top-right li.faq a{ background:url(../css/images/help.png) no-repeat left; pa
     /* border-bottom:1px solid #333; */
     font-size:20px;
   }
+  

@@ -379,21 +379,28 @@ function reLoadEditor (filePath,editfileName) {
     var reloadFileContent = document.getElementById('Editor1').value;
     //alert('filepath=>'+filePath+'] [edit file=>'+editfile_content);
     //alert(filePath);
-    $.ajax({
-        //url: "testedit.php",mainpage.php?module=publish&publish=html&stage=edit&filePath="+filePath // ?filePath="+filePath
-        url: "edit.php?stage=edit",
-        //url: "mainpage.php?module=publish&publish=html&stage=edit",
-        type: "POST",
-        data: {filePath: filePath, editfileName: editfileName, reloadFileContent: reloadFileContent},
-        success: function(result) {
-          if(result != '') {
-              //$("#textareaContent").text(result);
-//              alert('mk');
-          } else {
-//              alert('mk2');
-          }
-        }
-   });
+    //$(document).ready(function() {
+        //$("#mytextarea").html(reloadFileContent);
+        $.ajax({
+            //url: "testedit.php",mainpage.php?module=publish&publish=html&stage=edit&filePath="+filePath // ?filePath="+filePath
+            //url: "edit.php?stage=edit",
+            url: "reloadEditor.php",
+            type: "POST",
+            data: {filepath: filePath, editfileName: editfileName, reloadFileContent: reloadFileContent},
+            async: false,
+            cache: false,
+            success: function(result) {
+              if(result != '' && result == 'success') {
+                  window.location.href="mainpage.php?module=publish&publish=html&stage=edit&reloadeditor=reload&dirname="+filePath+"&filename="+editfileName;
+                  //alert('mk='+result);
+              } else {
+                  alert("The file content couldn't be refreshed.");
+              }
+            }
+       });
+   //});
+//mainpage.php?module=publish&publish=html&stage=edit&dirname=../published/jobs/$sourceDir&filename=$filename
+     //window.location.href="mainpage.php?module=publish&publish=html&stage=edit&dirname="+filePath+"&filename="+editfileName;
 }
 
 //
@@ -414,7 +421,8 @@ function cssEdit (assetid) {
                 loadSpeed: 200,
                 opacity: 0.9
               },
-
+               load: true,
+  
               closeOnClick: false
             });
             $.ajax({
@@ -438,6 +446,7 @@ function cssEdit (assetid) {
 
 // open replace text dialog
 function openReplaceDialog() {
+     
         var triggers = $(".modalInput1").overlay({
 
           // some mask tweaks suitable for modal dialogs
@@ -446,7 +455,7 @@ function openReplaceDialog() {
             loadSpeed: 200,
             opacity: 0.9
           },
-
+          load: true,
           closeOnClick: false
         });
 }

@@ -23,9 +23,14 @@ if ($hostaddr == '192.168.1.12') {
 $hostCWD = shell_exec("pwd");
 //echo $hostCWD;
 ?>
+<link rel="stylesheet" href="../css/style.css" type="text/css" />
+<script language="javascript" src="../js/jscript.js"></script>
+<script src="../js/jquery-1.3.2.js" type="text/javascript"></script>
+<script src="../js/jquery.tools.min.js" type="text/javascript"></script>
+<script src="../js/jquery.tools.min.js" type="text/javascript"></script>
 <form method="POST" name="publish" enctype="multipart/form-data">
     <div class="titleRow">HTML Publish</div>
-    <div class="titlesubRow"><span>Unpublished Repository :</span><a class="modalInput cssedit" rel="#yesno" href="#">Modify CSS</a><a class="changeStage" href="#" onClick="changeStage('asset','epub')">Change Stage</a>
+    <div class="titlesubRow"><span>Unpublished Repository :</span><a class="changeStage" href="javascript:void(0);" onClick="changeStage('asset','epub')">Change Stage</a><a class="modalInput cssedit" rel="#yesno" href="javascript:void(0);" onClick="cssEdit('asset')">Modify CSS</a>
         <select id="asset" name='asset' onChange="showAssetfiles(this.value,'loadContents','<?php echo $UserName ?>')">
             <option value='---SELECT---'>---SELECT---</option>
             <?php
@@ -44,7 +49,7 @@ $hostCWD = shell_exec("pwd");
                     <div class="cDesd">No Item to show</div>
                 </div>
             </div>
-            <div class="mbtn"> <a href="#" class="garrow" title="Publish HTML for ePub"></a> <a href="#" class="refresh" title="Refresh"></a> </div>
+            <div class="mbtn"> <a href="javascript:void(0);" class="garrow" title="Publish HTML for ePub"></a> <a href="javascript:void(0);" class="refresh" title="Refresh"></a> </div>
             <div class="col1">
                 <h6 class="blk17">To Be Published</h6>
                 <div class="bx1">
@@ -82,45 +87,9 @@ $hostCWD = shell_exec("pwd");
     You can edit CSS stylesheet in this dialog. Please select appropriate packet name.
   </textarea>
   <!-- yes/no buttons -->
-  <p>
+  <p style="text-align: center;">
     <input type="button" name="cssSave" value="Save" class="close bluBtn" onclick="saveCSSbyEditor('csseditor')"/>
     <input type="button" value="Cancel" class="close bluBtn" />
   </p>
 </div>
-<script>
-$(document).ready(function() {
-  //javascript:location.replace('sunxpublish:http://$hostpath/include/download.php?code=111&filename=$hostCWD/[link]');
-  // get user input
-  $("select#asset").change(function() {
-      var input = $("select#asset option:selected").val();
-      if (input != '' && input != '---SELECT---') {
-        var triggers = $(".modalInput").overlay({
-
-          // some mask tweaks suitable for modal dialogs
-          mask: {
-            color: '#ebecff',
-            loadSpeed: 200,
-            opacity: 0.8
-          },
-
-          closeOnClick: false
-        });
-        $.ajax({
-            type: "POST",
-            url: "editcss.php?dir=../published/jobs/"+input,
-            //url: "sunxpublish:http://$hostpath/include/download.php?code=111&filename=$hostCWD/"+input+"/css/stylesheet.css",
-            success: function(html){ 
-              if(html!="") {                
-                $("textarea#csseditor").fadeIn(500);
-                $("span#cssJobName").html(input);
-                $("textarea#csseditor").text(html);
-              }
-            }
-         });
-      } else {
-        alert('Please select valid repository.');
-      }
-  });
-});
-</script>
 </form>

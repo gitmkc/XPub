@@ -8,6 +8,7 @@ include_once("../classes/dbquery.php");
 require_once "../cuteeditor_files/include_CuteEditor.php";
 
 $cssName = 'stylesheet.css';
+$textcss = '';
 //$checkName = '';
 
 if (isset($_REQUEST['stage'])) {
@@ -16,9 +17,9 @@ if (isset($_REQUEST['stage'])) {
     $filename = $_REQUEST['filename'];
     $filename = preg_replace("/(.+?).html$/", "$1", $filename);
 }
-
 // WRITE EDITED FILE
 if (isset($_POST['Editor1'])) {
+    //echo "$filepath/$filename";
     $editor = new CuteEditor();
     $editor->ID = "Editor1";
     $editor->Text = "$_POST[Editor1]";
@@ -70,22 +71,33 @@ if (isset($_POST['Editor1'])) {
         //header("location:editclose.php");
     }
 } else {
-    if (isset($_POST['reloadFileContent'])) {
-        $filepath = "$_POST[filePath]";
-        $filename = "$_POST[editfileName]";
-        $fileContent = "$_POST[reloadFileContent]";
-//        $fileContent = "MUKE++".$fileContent;
-//        echo "reloadFileContent++$filepath";
-//        $checkName = 'refresh-edit';
+    if (isset($_GET['reloadeditor'])) {// check entity change problem
+        $filepath = $_GET['dirname'];
+        $filename = $_GET['filename'];
+        
+        system("../webapp/scripts/editorContent.pl \"$filepath\" \"${filename}.edit\"");
+        if (file_exists("$filepath/$filename-norm.edit")) {
+            $fileContent = file_get_contents("$filepath/$filename-norm.edit");
+            unlink("$filepath/$filename.edit");
+            unlink("$filepath/$filename-norm.edit");
+        } else {
+            ?>
+            <script language="javascript" type="text/javascript">
+                alert("The file content couldn't be refreshed. Please try again.");
+            </script>
+            <?php
+        }
+        //unlink("$filepath/$filename.edit");
     } else {
+        //echo "reloading original....";
         // OPEN FILE IN EDITOR
-        system("../webapp/scripts/modifyHTML.pl \"$filepath/$filename.html\" \"$filepath/${filename}-stg1.html\"");
+        system("../webapp/scripts/modifyHTML.pl \"$filepath/$filename.html\" \"$filepath/$filename-stg1.html\"");
         $fileContent = file_get_contents("$filepath/$filename-stg1.html");
     }   
 }
 ?>  
-<form method="POST" name="publish" enctype="multipart/form-data">
-    <div class="titleRow">HTML Publish - QA/Edit (<?php echo "$filepath/$filename" ?>)<a style="margin-bottom: 3px; float:right" href="#" onClick="reLoadEditor('<?php echo "$filepath"?>','<?php echo "$filename"?>');"><img align="top" src="../css/images/refresh_edit.png"/></a></div>
+    <form method="POST" name="publish" enctype="multipart/form-data">
+    <div class="titleRow">HTML Publish - QA/Edit (<?php echo "$filename" ?>)<a style="margin-bottom: 3px; float:right; color:white;" href="javascript:void(0);" onClick="reLoadEditor('<?php echo "$filepath"?>','<?php echo "$filename"?>');"><img align="top" src="../css/images/refresh_edit.png"/> Refresh</a></div>
     <div class="clear"></div>
     <div id="loadContents">
         <div>
@@ -105,11 +117,14 @@ if (isset($_POST['Editor1'])) {
             $editor->Text = "$fileContent";
             //Step 3: Set a unique ID to Editor   
             $editor->ID = "Editor1";
-            $editor->UseHTMLEntities = false;
+            //$editor->UseHTMLEntities = false;
             $editor->AutoParseClasses = true;
             $editor->EditorWysiwygModeCss = "$cssName";
+            //$editor->EditCompleteDocument=true;
             $editor->BreakElement = "P";
             $editor->Focus = true;
+            $editor->EditorOnPaste="PasteWord,PasteCleanHTML,ConfirmWord";
+            $editor->MaxImageSize = 1024;
             //$editor->XHTMLOutput=true;
             //Step 4: Render Editor   
             $editor->Draw();

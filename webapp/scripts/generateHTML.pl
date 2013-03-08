@@ -21,6 +21,10 @@ if (!$ARGV[0]) {
 my $processedFile=`fgrep -e '<?xml version="1.0"' '$dirName\/$fileName'`;
 # print "($processedFile)===\n";
 if ($processedFile) {
+	## Check stylesheet dir
+	if ((!(-d "$dirName/css")) && ((-e "$dirName/stylesheet.css"))) {
+		system("mkdir $dirName/css && mv $dirName/stylesheet.css $dirName/css/stylesheet.css");
+	}
     exit(0);
 }
 

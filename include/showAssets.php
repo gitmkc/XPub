@@ -77,7 +77,7 @@ if (isset($_REQUEST['sourcedir'])) {
     <div class="clear"></div>
     <div id="publishMyHTML">
         <div class="tableBox">
-            <h6 class="blk17">Published History <a class="refreshlist" href="#" onClick="showAssetfiles('<?php echo $sourceDir?>','loadContents','<?php echo $UserName ?>')">List</a><a class="modalInput1 findReplace" rel="#yesno1" href="#" onClick="openReplaceDialog();">Find/Replace</a></h6>
+            <h6 class="blk17">Published History <a class="refreshlist" href="javascript:void(0);" onClick="showAssetfiles('<?php echo $sourceDir?>','loadContents','<?php echo $UserName ?>')">Published List</a><a class="modalInput1 findReplace" rel="#yesno1" href="javascript:void(0);" onClick="openReplaceDialog();">Find/Replace</a></h6>
             <table class="proj_table" width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr class="tab_head">
                     <th align="left" valign="middle">#</th>
@@ -108,7 +108,7 @@ if (isset($_REQUEST['sourcedir'])) {
 
                         echo "<tr>";
                         echo "<td>$fileCount</td>";
-                        echo "<td><a href='#'>$key</a></td>";
+                        echo "<td><a href='javascript:void(0);'>$key</a></td>";
                         echo "<td>$filetime</td>";
                         echo "<td>$UserName</td>";
                         echo "<td>$publishStatus</td>";
@@ -146,7 +146,7 @@ if (isset($_REQUEST['sourcedir'])) {
         </li>
     </ul>
     </div>    
-  <p>
+  <p style="text-align: center;">
     <input type="button" name="qproceed" value="Proceed" class="centerBtn close bluBtn" onClick="findreplace('<?php echo "../published/jobs/$sourceDir"?>')"/>
     <input type="button" value="Cancel" class="centerBtn close bluBtn" />
   </p>

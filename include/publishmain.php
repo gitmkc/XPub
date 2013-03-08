@@ -28,6 +28,7 @@ if (isset($_POST['form_1'])) {
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<!--meta http-equiv="Content-Type" content="text/html; charset=utf-8" /-->
 <title>SunXPublish - Digital Publishing Platform</title>
 <link rel="stylesheet" href="../css/style.css" type="text/css" />
 <script language="javascript" src="../js/jscript.js"></script>

@@ -3,13 +3,17 @@
 use strict;
 use File::Basename;
 
-## main variables - inputfile and outputfile
 my ($inputfile,$outputfile,$filepath);
+my ($metatag,$charset);
+##
 $inputfile=$ARGV[0];
 $outputfile=$ARGV[1];
 
-## get filepath
+## 
 $filepath=dirname $inputfile;
+
+# print "$filepath++$inputfile++$outputfile\n";
+#exit(0);
 
 undef $/;
 open (INFILE,"$inputfile") || die ("couldn't open file to read");
@@ -30,16 +34,22 @@ while (/<span style='(.+?)'>/s) {
 }
 s/<HTMLspan Style="(.+?)">/<span style="$1">/g;
 
+#print "Modify HTML";
+
 ## find entity type
 if (/\&\#x([0-9A-Z]+)\;/) {
+	my $entLength = length($1);
+    $charset = "utf-8";
     open(XMLINFO,">$filepath/xmlinfo.txt") || die ("Couldn't create xmlinfo file!");
-    print XMLINFO "unicode\n";
+    print XMLINFO "unicode: $entLength\n";
     close(XMLINFO);
 } elsif (/\&([a-z]+)\;/) {
+    $charset = "iso-8859-1";
     open(XMLINFO,">$filepath/xmlinfo.txt") || die ("Couldn't create xmlinfo file!");
     print XMLINFO "iso\n";
     close(XMLINFO);
 } else {
+    $charset = "utf-8";
     open(XMLINFO,">$filepath/xmlinfo.txt") || die ("Couldn't create xmlinfo file!");
     print XMLINFO "utf8\n";
     close(XMLINFO);
@@ -54,6 +64,26 @@ if (/xml:lang="([A-Za-z\-]+)"/) {
     close(XMLINFO);
 }
 
+## meta
+if (!(/<meta http-equiv="content-type" content="text\/html\;charset=(utf-8|iso-8859-1|UTF-8|ISO-8859-1)"([\s]*)\/>/s)) {
+    $metatag=$1;
+    $metatag="<meta http-equiv=\"content-type\" content=\"text\/html\;charset=iso-8859-1\" \/>";
+} 
+
+if (!$metatag) {
+    if (!(/<meta http-equiv="Content-Type" content="text\/html\;charset=(utf-8|iso-8859-1|UTF-8|ISO-8859-1)"([\s]*)\/>/)) {
+	$metatag=$1;
+	$metatag="<meta http-equiv=\"Content-Type\" content=\"text\/html\;charset=iso-8859-1\" \/>";
+    }
+}
+
+## Insert meta tag
+if ($metatag) {
+    s/<\/head>/${metatag}\n<\/head>/s;
+    open(XMLINFO,">>$filepath/xmlinfo.txt") || die ("Couldn't create xmlinfo file!");
+    print XMLINFO "metatag\n";
+    close(XMLINFO);
+}
 
 ## Write buffer to output file
 open (OUTFILE,">$outputfile") || die ("couldn't open file to write");

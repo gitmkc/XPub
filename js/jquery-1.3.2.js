@@ -3156,7 +3156,7 @@ jQuery( window ).bind( 'unload', function(){
 		
 		// Make sure that element opacity exists
 		// (IE uses filter instead)
-		opacity: a.style.opacity === "0.5",
+		opacity: a.style.opacity === "0.3",
 		
 		// Verify style float existence
 		// (IE uses styleFloat instead of cssFloat)

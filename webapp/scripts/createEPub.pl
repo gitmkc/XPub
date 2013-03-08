@@ -95,31 +95,38 @@ sub createePub() {
 	    }
 
 	    if ($file=~/\.(xhtml|html)$/) {
+		#print "\nsubdir $epubType and files==>(".$file.")\n";
+		# my $createDir=" >> ${Scriptlog} 2>"."\"$tempWorkDir/${fileDir}.log\"";
 		&modifyHTML("$file");
+		# system("mkdir -p $tempWorkDir/$epubType");
 		move("$tempWorkDir/$file","$tempWorkDir/$epubType");
 	    }
 	    
 	    ##
 	    if ($file=~/.css$/s) {
+		# system("mkdir -p $tempWorkDir/$epubType");
 		system("mkdir -p $tempWorkDir/$epubType/css");
 		system("mv $tempWorkDir/${file} $tempWorkDir/$epubType/css/stylesheet.css");
 	    }
 	    
 	    if ($file eq "css") {
+		# system("mkdir -p $tempWorkDir/$epubType");
 		system("mv $tempWorkDir/${file} $tempWorkDir/$epubType");
 	    }
 	    
 # 	    ## Copy Image Dir to epub
 	    if (($file eq "Images" || $file eq "images") && ((-d "$tempWorkDir/Images") || (-d "$tempWorkDir/images"))) {
+		# print "\n==($fileDir+$epubType=".$file.")\n";
 		if (-e "$tempWorkDir/$file/Thumbs.db") {
 		    system("rm $tempWorkDir/$file/Thumbs.db");
 		}
+		# system("mkdir -p $tempWorkDir/$epubType");
 		system("mv $tempWorkDir/$file $tempWorkDir/$epubType");
 	    }
 	    
         }
 	closedir(DIR);
- 	## Copy mimetype
+# 	    ## Copy mimetype
 	copy("$epubFiles/mimetype","$tempWorkDir");
 	system("mkdir -p $tempWorkDir/META-INF");
 	system("cp -p \"$epubFiles/$epubType/container.xml\" \"$tempWorkDir/META-INF\"");
@@ -131,7 +138,7 @@ sub createePub() {
 
     ## Generate OPF
     &writeToPopup("Generating OPF...");
-    system("perl $scriptPath/createOPF-v1.0.pl \"$tempWorkDir/$epubType\" >> ${Scriptlog}");
+    system("perl $scriptPath/createOPF-v1.0.pl \"$tempWorkDir/$epubType\" >> ${Scriptlog}");# && mv \"$tempWorkDir/content.opf\" \"$tempWorkDir/$epubType\"
 
     ## Deletes OPF and NAV logs files
     unlink("$tempWorkDir/$epubType/OPF.log") if (-e "$tempWorkDir/$epubType/OPF.log");
@@ -151,7 +158,7 @@ sub createePub() {
 
     ## Generate NCX
     &writeToPopup("Generating Navigation (toc)...");
-    system("perl $scriptPath/createTOC-v1.0.pl \"$tempWorkDir/$epubType\" >> ${Scriptlog}");
+    system("perl $scriptPath/createTOC-v1.0.pl \"$tempWorkDir/$epubType\" >> ${Scriptlog}");# && mv \"$tempWorkDir/toc.ncx\" \"$tempWorkDir/$epubType\"
 
     # system("/usr/local/bin/xml_pp -s indented $tempWorkDir/$epubType/toc.ncx > $tempWorkDir/$epubType/TOC.ncx 2>$tempWorkDir/$epubType/NAV.log");
     # if (-s "$tempWorkDir/$epubType/NAV.log") {
@@ -177,6 +184,22 @@ sub modifyHTML () {
     }
     close(HTMLFILE);
 
+    # ## Add space in Ligature for PDF QA - When we copy text from pdf then it contains spaces in ligatures.
+    # ## Case 1 - fl
+    # $HTMLContents=~s/([A-Za-z])f l([A-Za-z])/${1}fl$2/g;
+    # $HTMLContents=~s/ F l([A-Za-z])/Fl$1/g;
+    # $HTMLContents=~s/([A-Za-z])f l /${1}fl /g;
+
+    # ## Case 2 - fi
+    # $HTMLContents=~s/([A-Za-z])f i([A-Za-z])/${1}fi$2/g;
+    # $HTMLContents=~s/ F i([A-Za-z])/Fi$1/g;
+    # $HTMLContents=~s/([A-Za-z])f i /${1}fi /g;
+
+    # ## Case 3 - ff
+    # $HTMLContents=~s/([A-Za-z])f f([A-Za-z])/${1}ff$2/g;
+    # $HTMLContents=~s/ F f([A-Za-z])/Ff$1/g;
+    # $HTMLContents=~s/([A-Za-z])f f /${1}ff /g;
+
     ##
     if ($HTMLContents=~/<link (.+?) href="style.css"/s) {
 	$HTMLContents=~s/<link (.+?) href="style.css"/<link $1 href="css\/stylesheet.css"/s;
@@ -196,7 +219,9 @@ sub modifyHTML () {
 
     $htmlFile=~s/.(xhtml|html)$//s;
 
-    ## Write Buffer to File
+    # print "($htmlFile)+++($htmlFileExt)\n";
+
+    # ## Write Buffer to File
     open(HTMLOUT,">$tempWorkDir/${htmlFile}-out.$htmlFileExt") || die ("Couldn't create HTMLOUT file");
     print HTMLOUT $HTMLContents;
     close(HTMLOUT);
